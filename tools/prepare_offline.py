@@ -1,31 +1,33 @@
 from pathlib import Path
 import re
-import subprocess
+import shutil
 
-src = Path("tools/source-v3.html").read_text(encoding="utf-8")
+src = Path('tools/source-v3.html').read_text(encoding='utf-8')
+
+# The V3 game remains an ES module, but it must import Three.js from local
+# Android assets rather than jsDelivr. The Android WebView serves the assets
+# from the appassets virtual HTTPS origin, so native ES-module loading works
+# without file:// CORS restrictions.
 src, n = re.subn(
     r"import\s+\*\s+as\s+THREE\s+from\s+[\"'][^\"']+[\"'];",
     "import * as THREE from './three.module.min.js';",
-    src, count=1,
+    src,
+    count=1,
 )
 if n != 1:
-    raise SystemExit('Could not rewrite the Three.js import')
+    raise SystemExit('Could not rewrite the V3 Three.js import')
 
-m = re.search(r'<script\s+type=["\']module["\']>([\s\S]*?)</script>', src, re.I)
-if not m:
-    raise SystemExit('Could not find the V3 module script')
+out = Path('app/src/main/assets')
+out.mkdir(parents=True, exist_ok=True)
 
-entry = Path('tools/v3-entry.js')
-entry.write_text(m.group(1).strip() + '\n', encoding='utf-8')
-bundle = Path('tools/v3-bundle.js')
-subprocess.run([
-    'npx', '--yes', 'esbuild@0.25.9', str(entry),
-    '--bundle', '--format=iife', '--outfile=' + str(bundle), '--minify',
-], check=True)
+three_module = Path('tools/three.module.min.js')
+three_core = Path('tools/three.core.js')
+for p in (three_module, three_core):
+    if not p.exists() or p.stat().st_size < 1000:
+        raise SystemExit(f'Missing or invalid Three.js asset: {p}')
+    shutil.copy2(p, out / p.name)
 
-compiled = bundle.read_text(encoding='utf-8')
-out_html = src[:m.start()] + '<script>\n' + compiled + '\n</script>' + src[m.end():]
-out = Path('app/src/main/assets/index.html')
-out.parent.mkdir(parents=True, exist_ok=True)
-out.write_text(out_html, encoding='utf-8')
-print(f'Wrote {out} ({out.stat().st_size} bytes)')
+(out / 'index.html').write_text(src, encoding='utf-8')
+print(f'Prepared {out / "index.html"} ({(out / "index.html").stat().st_size} bytes)')
+print(f'Copied {three_module.name}: {three_module.stat().st_size} bytes')
+print(f'Copied {three_core.name}: {three_core.stat().st_size} bytes')

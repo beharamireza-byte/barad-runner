@@ -19,11 +19,14 @@ jobs:
       - uses: android-actions/setup-android@v4
       - name: Install Android SDK
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-      - name: Download exact Three.js module locally
+      - name: Download exact Three.js assets locally
         run: |
           mkdir -p tools
           curl -L --fail --retry 3 -o tools/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js
-      - name: Bundle exact V3 for file:// WebView
+          curl -L --fail --retry 3 -o tools/three.core.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.core.js
+          test -s tools/three.module.min.js
+          test -s tools/three.core.js
+      - name: Prepare exact V3 for appassets WebView
         run: python3 tools/prepare_offline.py
       - name: Build APK
         run: gradle :app:assembleRelease --no-daemon
