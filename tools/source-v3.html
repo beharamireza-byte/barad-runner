@@ -7,7 +7,6 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>BARAD RUNNER — 3D Voxel Endless Runner v3</title>
-<link rel="manifest" href="./manifest.webmanifest">
 <style>
   :root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#fff;background:#071017}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -72,8 +71,9 @@
     </div>
   </div>
 </div>
+
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js';
+import * as THREE from './three.module.min.js';
 
 const $ = id => document.getElementById(id);
 const gameEl = $('game');
@@ -94,7 +94,7 @@ loadbar.style.width='100%';
 function failBoot(err){
   console.error(err);
   $('bootError').style.display='block';
-  $('bootError').innerHTML='The 3D engine could not start.<br>Make sure the browser is online and reopen the file. '+(err?.message||'');
+  $('bootError').innerHTML='The 3D engine could not start.<br>Reopen BARAD RUNNER. The 3D engine failed to start. '+(err?.message||'');
 }
 
 try {
@@ -465,10 +465,6 @@ try {
   animate(performance.now());
 }catch(err){failBoot(err)}
 </script>
-<script>
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  }
-</script>
+
 </body>
 </html>
