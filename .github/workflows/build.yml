@@ -10,14 +10,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: '8.9' }
+        with:
+          gradle-version: '8.9'
       - uses: android-actions/setup-android@v4
       - name: Install Android SDK
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-      - name: Fetch classic Three.js for build (runtime stays offline)
-        run: curl -L --fail --retry 3 -o tools/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.min.js
+
+      # Use the exact Three.js version used by approved V3, but bundle it
+      # into a classic browser script for Android WebView. Runtime stays offline.
+      - name: Install Node build tools and exact Three.js
+        run: |
+          npm init -y
+          npm install --no-save esbuild three@0.186.1
+      - name: Build Three.js global bundle
+        run: |
+          npx esbuild node_modules/three/build/three.module.js \
+            --bundle --format=iife --global-name=THREE --minify \
+            --outfile=tools/three.global.js
       - name: Bundle exact V3 into one offline HTML
         run: python3 tools/make_offline.py
       - name: Build APK
