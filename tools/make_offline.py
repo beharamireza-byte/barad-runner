@@ -1,24 +1,36 @@
 from pathlib import Path
 import re
-src = Path('tools/source-v3.html').read_text(encoding='utf-8')
-three = Path('tools/three.module.min.js').read_text(encoding='utf-8')
-# Convert the standalone ESM build into a classic script by turning its final export list into window.THREE.
-m = re.search(r'export\s*\{([\s\S]*?)\};?\s*$', three)
-if not m:
-    raise SystemExit('Could not find Three.js export block')
-exports = m.group(1).strip()
-pairs=[]
-for part in exports.split(','):
-    part=part.strip()
-    if not part: continue
-    if ' as ' in part:
-        a,b = [x.strip() for x in part.split(' as ')]
-        pairs.append(f'{b}:{a}')
-    else:
-        pairs.append(f'{part}:{part}')
-classic_three = three[:m.start()] + 'window.THREE={' + ','.join(pairs) + '};\n'
-src = re.sub(r"import\s+\*\s+as\s+THREE\s+from\s+['\"][^'\"]+['\"];", 'const THREE = window.THREE;', src, count=1)
-# Put Three first, then the game's existing module code becomes classic JS.
-# It contains no remaining imports after the replacement.
-src = src.replace('<script type="module">\nconst THREE = window.THREE;', '<script>\n' + classic_three + '\nconst THREE = window.THREE;', 1)
-Path('app/src/main/assets/index.html').write_text(src, encoding='utf-8')
+
+src = Path("tools/source-v3.html").read_text(encoding="utf-8")
+three = Path("tools/three.min.js").read_text(encoding="utf-8")
+
+# The V3 game was written as an ES module. Replace its remote import with
+# the global THREE object exposed by the classic Three.js build, then inline
+# that build into the same HTML file. This avoids file:// module/CORS issues
+# inside Android WebView and keeps runtime fully offline.
+src, n = re.subn(
+    r"import\s+\*\s+as\s+THREE\s+from\s+[\"\'][^\"\']+[\"\'];",
+    "const THREE = window.THREE;",
+    src,
+    count=1,
+)
+if n != 1:
+    raise SystemExit("Could not replace the V3 Three.js import")
+
+# Change only the game script tag. The source has a module script directly
+# containing the game code; after the import is removed it can run as classic JS.
+src, n = re.subn(r"<script\s+type=\"module\">", "<script>", src, count=1)
+if n != 1:
+    raise SystemExit("Could not convert the V3 game script tag")
+
+# Prepend the self-contained classic Three.js build before the game's script.
+needle = "<script>\nconst THREE = window.THREE;"
+if needle not in src:
+    raise SystemExit("Expected V3 Three.js bootstrap marker not found")
+src = src.replace(needle, "<script>\n" + three + "\nconst THREE = window.THREE;", 1)
+
+# The Android app loads this exact single asset.
+out = Path("app/src/main/assets/index.html")
+out.parent.mkdir(parents=True, exist_ok=True)
+out.write_text(src, encoding="utf-8")
+print(f"Wrote {out} ({out.stat().st_size} bytes)")

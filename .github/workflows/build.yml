@@ -16,8 +16,8 @@ jobs:
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-      - name: Fetch Three.js for build (runtime stays offline)
-        run: curl -L --fail --retry 3 -o tools/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js
+      - name: Fetch classic Three.js for build (runtime stays offline)
+        run: curl -L --fail --retry 3 -o tools/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.min.js
       - name: Bundle exact V3 into one offline HTML
         run: python3 tools/make_offline.py
       - name: Build APK
