@@ -21,8 +21,8 @@ jobs:
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Download exact Three.js module locally
         run: |
-          mkdir -p app/src/main/assets
-          curl -L --fail --retry 3 -o app/src/main/assets/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js
+          mkdir -p tools
+          curl -L --fail --retry 3 -o tools/three.module.min.js https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js
       - name: Bundle exact V3 for file:// WebView
         run: python3 tools/prepare_offline.py
       - name: Build APK
