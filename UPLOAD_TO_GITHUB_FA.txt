@@ -1,0 +1,19 @@
+BARAD RUNNER — فایل آماده GitHub
+
+این پروژه بر پایه همان BARAD RUNNER V3 تأییدشده است. طراحی/گیم‌پلی V3 تغییر داده نشده؛ فقط Three.js هنگام Build دانلود و داخل APK قرار می‌گیرد تا خود APK برای اجرا به اینترنت نیاز نداشته باشد.
+
+روش نصب در GitHub:
+1) محتویات این پوشه را از حالت ZIP خارج کن.
+2) در ریپوی barad-runner روی Add file > Upload files بزن.
+3) تمام فایل‌ها و پوشه‌های داخل این پوشه را آپلود کن و Commit changes بزن.
+4) بعد به Actions برو. Workflow با نام Build BARAD RUNNER Offline APK باید اجرا شود.
+5) بعد از سبز شدن Build، وارد همان Run شو و از بخش Artifacts فایل BARAD_RUNNER_OFFLINE_APK را بگیر.
+
+اگر GitHub در موبایل اجازه آپلود پوشه .github را نداد:
+- فایل build-workflow-copy.yml را باز کن و محتوای آن را کپی کن.
+- در GitHub: Add file > Create new file
+- نام فایل را دقیقاً این بگذار: .github/workflows/build.yml
+- محتوا را Paste و Commit کن.
+- سپس بقیه فایل‌های پروژه را Upload کن.
+
+نکته: APK خروجی Signed است و باید نصب شود. چون کلید انتشار در هر Build از نو ساخته می‌شود، برای نصب نسخه جدید در آینده ممکن است لازم باشد نسخه قبلی را Uninstall کنی.
